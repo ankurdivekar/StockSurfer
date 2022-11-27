@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "stocksurfer"
+  site-url: "https://ankurdivekar.github.io/stocksurfer"
+  description: "A set of scripts for performing various stock market analyses."
+  repo-branch: main
+  repo-url: "https://github.com/ankurdivekar/stocksurfer"
