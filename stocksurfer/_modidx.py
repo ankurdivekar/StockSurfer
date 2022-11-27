@@ -5,4 +5,6 @@ d = { 'settings': { 'branch': 'main',
                 'doc_host': 'https://ankurdivekar.github.io',
                 'git_url': 'https://github.com/ankurdivekar/stocksurfer',
                 'lib_path': 'stocksurfer'},
-  'syms': {'stocksurfer.core': {'stocksurfer.core.foo': ('core.html#foo', 'stocksurfer/core.py')}}}
+  'syms': { 'stocksurfer.stockdata': { 'stocksurfer.stockdata.foo': ('stockdata.html#foo', 'stocksurfer/stockdata.py'),
+                                       'stocksurfer.stockdata.say_hello': ('stockdata.html#say_hello', 'stocksurfer/stockdata.py')},
+            'stocksurfer.strategies': {'stocksurfer.strategies.foobar': ('strategies.html#foobar', 'stocksurfer/strategies.py')}}}
