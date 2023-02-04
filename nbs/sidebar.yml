@@ -3,4 +3,5 @@ website:
     contents:
       - index.ipynb
       - 00_stockdata.ipynb
-      - 01_strategies.ipynb
+      - 01_technicals.ipynb
+      - 02_strategies.ipynb
