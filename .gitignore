@@ -1,6 +1,8 @@
 _docs/
 _proc/
-Data/
+Data/Bhavcopy/
+Data/Screenshots/
+Data/URLs.txt
 
 *.bak
 .gitattributes
