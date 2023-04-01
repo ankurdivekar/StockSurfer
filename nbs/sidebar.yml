@@ -2,6 +2,6 @@ website:
   sidebar:
     contents:
       - index.ipynb
-      - 00_stockdata.ipynb
-      - 01_technicals.ipynb
-      - 02_strategies.ipynb
+      - 00_scrapers.ipynb
+      - 02_technicals.ipynb
+      - 03_strategies.ipynb
