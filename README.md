@@ -21,12 +21,21 @@ Get the latest NSE data
 
 ``` python
 # Define date range
-start_date = datetime(2023, 3, 20)
+start_date = datetime(2023,4, 1)
 end_date = datetime.now()
 
 # Fetch data from NSE
-# fetch_bhavcopy_data_for_range(start_date, end_date)
+fetch_bhavcopy_data_for_range(start_date, end_date)
 ```
+
+    Skipping 2023-04-01 as it is a weekend
+    Skipping 2023-04-02 as it is a weekend
+    File cm03APR2023bhav.csv.zip already exists.. unzipping
+    Skipping 2023-04-04 as it is a holiday: Mahavir Jayanti
+    File cm05APR2023bhav.csv.zip already exists.. unzipping
+    File cm06APR2023bhav.csv.zip already exists.. unzipping
+    Skipping 2023-04-07 as it is a holiday: Good Friday
+    Bhavcopy data download complete
 
 Get list of stocks in ASM and GSM
 
