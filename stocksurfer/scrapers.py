@@ -49,7 +49,7 @@ def save_daily_bhavcopy(d, random_delay=True):
     # Fetches bhavcopy data for a given date, unzips and saves to local path
 
     # Define paths
-    file_name = f"cm{day:02}{month}{year}bhav.csv.zip"
+    file_name = f"cm{str(day):02}{month}{year}bhav.csv.zip"
     file_url = f"{nse_url}/{year}/{month}/{file_name}"
     file_url_2 = f"{nse_url_2}/{year}/{month}/{file_name}"
 
