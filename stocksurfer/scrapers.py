@@ -36,7 +36,7 @@ def get_request_headers()-> dict:
         "accept-encoding": "gzip, deflate, br",
     }
 
-# %% ../nbs/00_scrapers.ipynb 8
+# %% ../nbs/00_scrapers.ipynb 7
 def save_daily_bhavcopy(d, random_delay=True):
     # Get Year, Month, Day
     year = d.year
@@ -66,7 +66,7 @@ def save_daily_bhavcopy(d, random_delay=True):
             time.sleep(random.randint(1, 10))
 
         headers = get_request_headers()
-        print(f"Downloading:{file_url}")
+        # print(f"Downloading:{file_url}")
 
         with requests.Session() as s:
             r = s.get(file_url, allow_redirects=False, headers=headers)
@@ -86,11 +86,16 @@ def save_daily_bhavcopy(d, random_delay=True):
                     print(f"Processed file: {file_name}")
 
 
-# %% ../nbs/00_scrapers.ipynb 9
+# %% ../nbs/00_scrapers.ipynb 8
 def fetch_bhavcopy_data_for_range(start_date, end_date):
     # Get list of holidays
     holidays = get_holidays_table()
 
+    # Get number of days between start and end date
+    n_days = (end_date - start_date).days
+    print(50*'-')
+    print(f"Fetching data for {n_days} days")
+    
     """Fetches bhavcopy data for a given date range and returns a pandas dataframe"""
     for d in pd.date_range(start_date, end_date):
         # Check if date is a NSE holiday
@@ -104,9 +109,10 @@ def fetch_bhavcopy_data_for_range(start_date, end_date):
             save_daily_bhavcopy(d, random_delay=True)
 
     print("Bhavcopy data download complete")
+    print(50*'-')
 
 
-# %% ../nbs/00_scrapers.ipynb 12
+# %% ../nbs/00_scrapers.ipynb 11
 def scrape_nse_holidays(segment: str) -> pd.DataFrame:
     # sourcery skip: extract-method
     holidays_url = "https://www.nseindia.com/api/holiday-master?type=trading"
@@ -149,7 +155,7 @@ def get_holidays_table(segment: str = "Equities") -> pd.DataFrame:
     return pd.read_csv(holidays_path)
 
 
-# %% ../nbs/00_scrapers.ipynb 14
+# %% ../nbs/00_scrapers.ipynb 13
 def scrape_symbol_list(file_url: str, file_path: str = None) -> List[str]:
     headers = get_request_headers()
     print(f"Downloading:{file_url}")
@@ -188,7 +194,7 @@ def scrape_symbol_list(file_url: str, file_path: str = None) -> List[str]:
             return df.symbol.to_list()
 
 
-# %% ../nbs/00_scrapers.ipynb 16
+# %% ../nbs/00_scrapers.ipynb 15
 def scrape_asm_list() -> List[str]:
     asm_url = "https://www.nseindia.com/api/reportASM"
     asm_file_path = Path(base_path, "../Data/Misc", "ASM_List.csv")
@@ -200,20 +206,20 @@ def scrape_gsm_list()-> List[str]:
     gsm_file_path = Path(base_path, "../Data/Misc", "GSM_List.csv")
     return scrape_symbol_list(gsm_url, gsm_file_path)
 
-# %% ../nbs/00_scrapers.ipynb 18
+# %% ../nbs/00_scrapers.ipynb 17
 def scrape_illiquid_list() -> List[str]:
     illiquid_sheet = "https://docs.google.com/spreadsheets/d/1xGjim5zIQbaP1oXm0EEIU28PMxkyFwW2ufyVoB-O-i8/export?gid=251665721&format=csv"
     df = pd.read_csv(illiquid_sheet)
     return df.Symbol.to_list()
 
-# %% ../nbs/00_scrapers.ipynb 20
+# %% ../nbs/00_scrapers.ipynb 19
 def get_blocklist() -> List[str]:
     gsm = scrape_gsm_list()
     asm = scrape_asm_list()
     illiquid = scrape_illiquid_list()
     return list(set(asm + gsm + illiquid))
 
-# %% ../nbs/00_scrapers.ipynb 22
+# %% ../nbs/00_scrapers.ipynb 21
 def get_insider_trading_list()-> List[str]:
     insider_url = "https://www.nseindia.com/api/corporates-pit?index=equities"
     insider_file_path = Path(base_path, "../Data/Misc", "Insider_List.csv")

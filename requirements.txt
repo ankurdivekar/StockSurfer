@@ -1,0 +1,6 @@
+nbdev==2.3.12
+numpy==1.23.4
+pandas==1.5.1
+pandas_ta==0.3.14b0
+requests==2.28.1
+setuptools==65.5.0
