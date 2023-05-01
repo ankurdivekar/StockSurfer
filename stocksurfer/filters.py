@@ -3,7 +3,7 @@
 # %% auto 0
 __all__ = ['base_path', 'processed_data_dir', 'nifty500_csv', 'get_nifty500', 'get_symbol_data', 'get_monthly_data',
            'get_weekly_data', 'single_candle_span', 'hammer_on_BBL', 'green_engulfing_on_BBL',
-           'three_rising_green_candles_on_SMA20', 'sma20_catch', 'filter_stocks']
+           'three_rising_green_candles_on_SMA20', 'sma20_catch', 'filter_stocks', 'alltime_high']
 
 # %% ../nbs/04_filters.ipynb 3
 import pandas as pd
@@ -198,3 +198,17 @@ def filter_stocks(
 
                 # Pass strategy args to the strategy method and run it
                 strategy(df_lb, kwargs=strategy_args)
+
+# %% ../nbs/04_filters.ipynb 16
+# Check for alltime high
+def alltime_high(df, kwargs=None):
+    df2 = df[:-1]
+    conditions = [
+        df.iloc[-1].CLOSE >= df2.HIGH.max(),
+        df.iloc[-2].CLOSE < df2.HIGH.max(),
+    ]
+    
+    if all(conditions):
+        print(f"{df.SYMBOL.iloc[0]} -> All time high on {df.DATE.iloc[-1].date()}")
+        return True
+    return False

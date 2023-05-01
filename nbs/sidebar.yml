@@ -4,4 +4,7 @@ website:
       - index.ipynb
       - 00_scrapers.ipynb
       - 02_technicals.ipynb
-      - 03_strategies.ipynb
+      - 03_databases.ipynb
+      - 04_filters.ipynb
+      - 05_strategies.ipynb
+      - 99_experiments.ipynb

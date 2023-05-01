@@ -3,7 +3,7 @@
 # %% auto 0
 __all__ = ['base_path', 'raw_data_dir', 'processed_data_dir', 'load_multiple_bhavcopy', 'get_raw_bhavcopy_data', 'preprocess',
            'get_sma', 'get_bollinger_bands', 'get_donchian', 'get_supertrend', 'add_candle_stats', 'add_all_technicals',
-           'process_and_save_symbol_data', 'rebuild_all_symbols_data', 'update_all_symbols_data']
+           'process_and_save_symbol_data', 'update_symbols', 'rebuild_all_symbols_data', 'update_all_symbols_data']
 
 # %% ../nbs/02_technicals.ipynb 3
 import pandas as pd
@@ -249,9 +249,22 @@ def process_and_save_symbol_data(df):
     print(f"Saved {file_path.name}")
 
 # %% ../nbs/02_technicals.ipynb 27
+def update_symbols(df):
+    symbol_replacements = [
+        ("CADILAHC", "ZYDUSLIFE"),
+        ("MINDAIND", "UNOMINDA"),
+    ]
+
+    for old, new in symbol_replacements:
+        df.SYMBOL = df.SYMBOL.replace({old: new})
+        
+    return df
+
+# %% ../nbs/02_technicals.ipynb 28
 def rebuild_all_symbols_data():
     df = get_raw_bhavcopy_data()
     df = preprocess(df)
+    df = update_symbols(df)
     
     # Recursively delete all files and directories inside the processed data directory
     _ = [
@@ -260,11 +273,11 @@ def rebuild_all_symbols_data():
     ]
 
     for symbol, df_symbol in df.groupby("SYMBOL"):
-        if len(df_symbol) > 200:
-            process_and_save_symbol_data(df_symbol)
+        # if len(df_symbol) > 200:
+        process_and_save_symbol_data(df_symbol)
             
 
-# %% ../nbs/02_technicals.ipynb 28
+# %% ../nbs/02_technicals.ipynb 29
 def update_all_symbols_data():
     # Define date range
     start_date = (

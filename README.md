@@ -19,7 +19,7 @@ Get the latest NSE data
 from datetime import datetime
 
 # Define date range
-start_date = datetime(2023,4, 15)
+start_date = datetime(2023,4, 25)
 end_date = datetime.now()
 
 # Fetch data from NSE
@@ -27,23 +27,14 @@ fetch_bhavcopy_data_for_range(start_date, end_date)
 ```
 
     --------------------------------------------------
-    Fetching data for 15 days
-    Skipping 2023-04-15 as it is a weekend
-    Skipping 2023-04-16 as it is a weekend
-    File cm17APR2023bhav.csv.zip already exists.. unzipping
-    File cm18APR2023bhav.csv.zip already exists.. unzipping
-    File cm19APR2023bhav.csv.zip already exists.. unzipping
-    File cm20APR2023bhav.csv.zip already exists.. unzipping
-    File cm21APR2023bhav.csv.zip already exists.. unzipping
-    Skipping 2023-04-22 as it is a holiday: Id-Ul-Fitr (Ramzan ID)
-    Skipping 2023-04-23 as it is a weekend
-    File cm24APR2023bhav.csv.zip already exists.. unzipping
+    Fetching data for 6 days
     File cm25APR2023bhav.csv.zip already exists.. unzipping
     File cm26APR2023bhav.csv.zip already exists.. unzipping
     File cm27APR2023bhav.csv.zip already exists.. unzipping
     File cm28APR2023bhav.csv.zip already exists.. unzipping
     Skipping 2023-04-29 as it is a weekend
     Skipping 2023-04-30 as it is a weekend
+    Skipping 2023-05-01 as it is a holiday: Maharashtra Day
     Bhavcopy data download complete
     --------------------------------------------------
 
