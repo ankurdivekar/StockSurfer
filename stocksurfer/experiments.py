@@ -3,18 +3,6 @@
 # %% auto 0
 __all__ = ['base_path', 'processed_data_dir']
 
-# %% ../nbs/99_experiments.ipynb 2
-import pandas as pd
-import numpy as np
-import nbdev
-
-from math import pi
-
-from scipy.signal import butter, filtfilt
-import numpy as np
-import talib
-import matplotlib.pyplot as plt
-
 # %% ../nbs/99_experiments.ipynb 3
 base_path = nbdev.config.get_config().lib_path
 

@@ -137,7 +137,7 @@ def get_sma(df_symbol, period=20, metric="CLOSE"):
 # %% ../nbs/02_technicals.ipynb 16
 # Generate bollinger bands data
 def get_bollinger_bands(df_symbol, period=20, std=2):
-    if not df_symbol.CLOSE.isnull().all():
+    if len(df_symbol) >= period:
         return pd.concat(
             [
                 df_symbol,
