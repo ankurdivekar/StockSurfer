@@ -2,8 +2,8 @@
 
 # %% auto 0
 __all__ = ['base_path', 'processed_data_dir', 'nifty500_csv', 'get_nifty500', 'get_symbol_data', 'get_monthly_data',
-           'get_weekly_data', 'single_candle_span', 'hammer_on_BBL', 'green_engulfing_on_BBL',
-           'three_rising_green_candles_on_SMA20', 'sma20_catch', 'filter_stocks', 'alltime_high']
+           'get_weekly_data', 'filter_stocks', 'single_candle_span', 'hammer_on_BBL', 'green_engulfing_on_BBL',
+           'three_rising_green_candles_on_SMA20', 'level_catch', 'alltime_high']
 
 # %% ../nbs/04_filters.ipynb 3
 import pandas as pd
@@ -77,93 +77,6 @@ def get_weekly_data(df):
     )
 
 # %% ../nbs/04_filters.ipynb 10
-# Check if the latest candle spans the given SMAs
-def single_candle_span(df, kwargs=None):
-    if kwargs and "col_list" in kwargs.keys():
-        col_list = kwargs["col_list"]
-    else:
-        col_list = ["SMA_20_C", "SMA_200_C"]
-
-    conditions = [
-        df.LOW.iloc[-1] <= df[col].iloc[-1] <= df.HIGH.iloc[-1] for col in col_list
-    ]
-    if all(conditions):
-        print(f"{df.SYMBOL.iloc[0]} -> Single candle span on {df.DATE.iloc[-1].date()}")
-        return True
-    return False
-
-# %% ../nbs/04_filters.ipynb 11
-# Check if the latest candle is a hammer
-def hammer_on_BBL(df, kwargs=None):
-    body = df.iloc[-1].CLOSE - df.iloc[-1].OPEN
-    upper_wick = df.iloc[-1].HIGH - df.iloc[-1].CLOSE
-    lower_wick = df.iloc[-1].OPEN - df.iloc[-1].LOW
-
-    conditions = [
-        df.iloc[-1].CLOSE > df.iloc[-1].OPEN,
-        lower_wick >= 2 * body,
-        body >= 1.5 * upper_wick,
-        df.iloc[-1].CLOSE > df.iloc[-1].BBL_20_2 > df.iloc[-1].LOW,
-    ]
-
-    if all(conditions):
-        print(f"{df.SYMBOL.iloc[0]} -> Hammer on BBL on {df.DATE.iloc[-1].date()}")
-        return True
-    return False
-
-# %% ../nbs/04_filters.ipynb 12
-# Check if latest candle is green takes out red on BBL
-def green_engulfing_on_BBL(df, kwargs=None):
-    conditions = [
-        df.iloc[-2].CLOSE < df.iloc[-2].OPEN,
-        df.iloc[-1].CLOSE > df.iloc[-1].OPEN,
-        df.iloc[-1].LOW < df.iloc[-1].BBL_20_2 < df.iloc[-1].HIGH,
-        df.iloc[-1].CLOSE > df.iloc[-2].OPEN,
-    ]
-
-    if all(conditions):
-        print(
-            f"{df.SYMBOL.iloc[0]} -> Green engulfing on BBL on {df.DATE.iloc[-1].date()}"
-        )
-        return True
-    return False
-
-# %% ../nbs/04_filters.ipynb 13
-# Check for three rising green candles
-def three_rising_green_candles_on_SMA20(df, kwargs=None):
-    conditions = [
-        df.iloc[-1].CLOSE > df.iloc[-1].OPEN,
-        df.iloc[-2].CLOSE > df.iloc[-2].OPEN,
-        df.iloc[-3].CLOSE > df.iloc[-3].OPEN,
-        df.iloc[-1].CLOSE > df.iloc[-2].CLOSE,
-        df.iloc[-2].CLOSE > df.iloc[-3].CLOSE,
-        df.iloc[-3].CLOSE > df.iloc[-3].SMA_20_C,
-        df.iloc[-3].LOW < df.iloc[-3].SMA_20_C,
-    ]
-
-    if all(conditions):
-        print(
-            f"{df.SYMBOL.iloc[0]} -> Three rising green candles on {df.DATE.iloc[-1].date()}"
-        )
-        return True
-    return False
-
-# %% ../nbs/04_filters.ipynb 14
-# Check for SMA 20 catch
-def sma20_catch(df, kwargs=None):
-    conditions = [
-        df.iloc[-1].CLOSE > df.iloc[-1].OPEN,
-        df.iloc[-2].CLOSE > df.iloc[-2].OPEN,
-        df.iloc[-2].LOW < df.iloc[-2].SMA_20_C,
-        df.iloc[-1].LOW > df.iloc[-1].SMA_20_C,
-        df.iloc[-1].CLOSE > df.iloc[-2].CLOSE,
-    ]
-
-    if all(conditions):
-        print(f"{df.SYMBOL.iloc[0]} -> SMA 20 catch on {df.DATE.iloc[-1].date()}")
-        return True
-
-# %% ../nbs/04_filters.ipynb 15
 def filter_stocks(
     symbols=None,
     timeframe="daily",
@@ -199,13 +112,108 @@ def filter_stocks(
                 # Pass strategy args to the strategy method and run it
                 strategy(df_lb, kwargs=strategy_args)
 
-# %% ../nbs/04_filters.ipynb 16
+# %% ../nbs/04_filters.ipynb 12
+# Check if the latest candle spans the given SMAs
+def single_candle_span(df, kwargs=None):
+    if kwargs and "col_list" in kwargs.keys():
+        col_list = kwargs["col_list"]
+    else:
+        col_list = ["SMA_20_C", "SMA_200_C"]
+
+    conditions = [
+        df.LOW.iloc[-1] <= df[col].iloc[-1] <= df.HIGH.iloc[-1] for col in col_list
+    ]
+    if all(conditions):
+        print(f"{df.SYMBOL.iloc[0]} -> Single candle span on {df.DATE.iloc[-1].date()}")
+        return True
+    return False
+
+# %% ../nbs/04_filters.ipynb 15
+# Check if the latest candle is a hammer
+def hammer_on_BBL(df, kwargs=None):
+    body = df.iloc[-1].CLOSE - df.iloc[-1].OPEN
+    upper_wick = df.iloc[-1].HIGH - df.iloc[-1].CLOSE
+    lower_wick = df.iloc[-1].OPEN - df.iloc[-1].LOW
+
+    conditions = [
+        df.iloc[-1].CLOSE > df.iloc[-1].OPEN,
+        lower_wick >= 2 * body,
+        body >= 1.5 * upper_wick,
+        df.iloc[-1].CLOSE > df.iloc[-1].BBL_20_2 > df.iloc[-1].LOW,
+    ]
+
+    if all(conditions):
+        print(f"{df.SYMBOL.iloc[0]} -> Hammer on BBL on {df.DATE.iloc[-1].date()}")
+        return True
+    return False
+
+# %% ../nbs/04_filters.ipynb 18
+# Check if latest candle is green takes out red on BBL
+def green_engulfing_on_BBL(df, kwargs=None):
+    conditions = [
+        df.iloc[-2].CLOSE < df.iloc[-2].OPEN,
+        df.iloc[-1].CLOSE > df.iloc[-1].OPEN,
+        df.iloc[-1].LOW < df.iloc[-1].BBL_20_2 < df.iloc[-1].HIGH,
+        df.iloc[-1].CLOSE > df.iloc[-2].OPEN,
+    ]
+
+    if all(conditions):
+        print(
+            f"{df.SYMBOL.iloc[0]} -> Green engulfing on BBL on {df.DATE.iloc[-1].date()}"
+        )
+        return True
+    return False
+
+# %% ../nbs/04_filters.ipynb 21
+# Check for three rising green candles
+def three_rising_green_candles_on_SMA20(df, kwargs=None):
+    conditions = [
+        df.iloc[-1].CLOSE > df.iloc[-1].OPEN,
+        df.iloc[-2].CLOSE > df.iloc[-2].OPEN,
+        df.iloc[-3].CLOSE > df.iloc[-3].OPEN,
+        df.iloc[-1].CLOSE > df.iloc[-2].CLOSE,
+        df.iloc[-2].CLOSE > df.iloc[-3].CLOSE,
+        df.iloc[-3].CLOSE > df.iloc[-3].SMA_20_C,
+        df.iloc[-3].LOW < df.iloc[-3].SMA_20_C,
+    ]
+
+    if all(conditions):
+        print(
+            f"{df.SYMBOL.iloc[0]} -> Three rising green candles on {df.DATE.iloc[-1].date()}"
+        )
+        return True
+    return False
+
+# %% ../nbs/04_filters.ipynb 24
+# Check for SMA 20 catch
+def level_catch(df, kwargs=None):
+    if kwargs and "level" in kwargs.keys():
+        conditions = [
+            df.iloc[-1].CLOSE > df.iloc[-1].OPEN,
+            df.iloc[-2].CLOSE > df.iloc[-2].OPEN,
+            df.iloc[-2].LOW < df.iloc[-2][kwargs['level']],
+            df.iloc[-1].LOW > df.iloc[-1][kwargs['level']],
+            df.iloc[-1].CLOSE > df.iloc[-2].CLOSE,
+        ]
+
+        if all(conditions):
+            print(f"{df.SYMBOL.iloc[0]} -> {kwargs['level']} catch on {df.DATE.iloc[-1].date()}")
+            return True
+    else:
+        print("Level not specified")
+    return False
+
+# %% ../nbs/04_filters.ipynb 27
 # Check for alltime high
 def alltime_high(df, kwargs=None):
     df2 = df[:-1]
     conditions = [
         df.iloc[-1].CLOSE >= df2.HIGH.max(),
         df.iloc[-2].CLOSE < df2.HIGH.max(),
+        
+        df.iloc[-3].CLOSE < df2.HIGH.max(),
+        df.iloc[-4].CLOSE < df2.HIGH.max(),
+        df.iloc[-5].CLOSE < df2.HIGH.max(),
     ]
     
     if all(conditions):
