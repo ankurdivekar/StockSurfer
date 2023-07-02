@@ -94,17 +94,18 @@ def fetch_bhavcopy_data_for_range(start_date, end_date):
     # Get number of days between start and end date
     n_days = (end_date - start_date).days
     print(50*'-')
-    print(f"Fetching data for {n_days} days")
+    print(f"Fetching data for {n_days+1} days")
     
     """Fetches bhavcopy data for a given date range and returns a pandas dataframe"""
     for d in pd.date_range(start_date, end_date):
         # Check if date is a NSE holiday
         q = holidays[holidays.tradingDate.str.contains(d.strftime("%d-%b-%Y"))]
-        if q.shape[0] > 0:
-            print(f"Skipping {d.date()} as it is a holiday: {q.description.values[0]}")
+        
         # Check if date is a weekend
-        elif d.weekday() > 4:
+        if d.weekday() > 4:
             print(f"Skipping {d.date()} as it is a weekend")
+        # elif q.shape[0] > 0:
+        #     print(f"Skipping {d.date()} as it is a holiday: {q.description.values[0]}")
         else:
             save_daily_bhavcopy(d, random_delay=True)
 

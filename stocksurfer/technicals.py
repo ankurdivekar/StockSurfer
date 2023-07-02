@@ -286,7 +286,10 @@ def update_all_symbols_data():
         .reset_index(drop=True)
         .DATE.iloc[-2]
     )
-    end_date = datetime.datetime.now().date()#-datetime.timedelta(days=15)
+    if datetime.datetime.now().time()>datetime.time(18,30):
+        end_date = datetime.datetime.now().date()
+    else:
+        end_date = datetime.datetime.now().date()-datetime.timedelta(days=1)
     print(start_date, end_date)
 
     # Fetch latest data from NSE
@@ -295,7 +298,7 @@ def update_all_symbols_data():
     df = preprocess(get_raw_bhavcopy_data(start_date=start_date))
     new_rows_per_symbol = df.shape[0]/df.SYMBOL.nunique()
     
-    if new_rows_per_symbol < 3:
+    if new_rows_per_symbol < 2:
         print("No new data to update")
     else:
         for symbol, df_symbol in df.groupby("SYMBOL"):
