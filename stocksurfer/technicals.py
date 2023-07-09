@@ -2,8 +2,9 @@
 
 # %% auto 0
 __all__ = ['base_path', 'raw_data_dir', 'processed_data_dir', 'load_multiple_bhavcopy', 'get_raw_bhavcopy_data', 'preprocess',
-           'get_sma', 'get_bollinger_bands', 'get_donchian', 'get_supertrend', 'add_candle_stats', 'add_all_technicals',
-           'process_and_save_symbol_data', 'update_symbols', 'rebuild_all_symbols_data', 'update_all_symbols_data']
+           'get_sma', 'get_bollinger_bands', 'get_donchian', 'get_supertrend', 'add_candle_stats',
+           'get_keltner_channels', 'add_all_technicals', 'process_and_save_symbol_data', 'update_symbols',
+           'rebuild_all_symbols_data', 'update_all_symbols_data']
 
 # %% ../nbs/02_technicals.ipynb 3
 import pandas as pd
@@ -14,8 +15,9 @@ import pandas_ta as pdta
 import nbdev
 import shutil
 import datetime
+from tqdm import tqdm
 
-from .scrapers import fetch_bhavcopy_data_for_range
+from .scrapers import fetch_bhavcopy_data_for_range, get_symbol_change_list
 
 # %% ../nbs/02_technicals.ipynb 4
 base_path = nbdev.config.get_config().lib_path
@@ -69,7 +71,7 @@ def load_multiple_bhavcopy(files_to_load):
 
 # %% ../nbs/02_technicals.ipynb 9
 def get_raw_bhavcopy_data(start_date: datetime=None, end_date:datetime.datetime=None) -> pd.DataFrame:
-    
+    print("Getting raw bhavcopy data...")
     if start_date:
         end_date = end_date or datetime.datetime.today()
         # Get list of date from bhavcopy_date till today
@@ -96,6 +98,7 @@ def get_raw_bhavcopy_data(start_date: datetime=None, end_date:datetime.datetime=
 
 # %% ../nbs/02_technicals.ipynb 11
 def preprocess(df):
+    print("Preprocessing data...")
     return (
         df.pipe(lambda x: x[x["SERIES"] == "EQ"])
         .assign(
@@ -143,22 +146,16 @@ def get_bollinger_bands(df_symbol, period=20, std=2):
                 df_symbol,
                 pdta.bbands(df_symbol.CLOSE, length=period, std=std).rename(
                     columns={
-                        f"BBU_{period}_{std:.1f}": f"BBU_{period}_{std}",
-                        f"BBM_{period}_{std:.1f}": f"BBM_{period}_{std}",
-                        f"BBL_{period}_{std:.1f}": f"BBL_{period}_{std}",
-                        f"BBB_{period}_{std:.1f}": f"BBB_{period}_{std}",
-                        f"BBP_{period}_{std:.1f}": f"BBP_{period}_{std}",
+                        f"BBU_{period}_{std:.1f}": "BB_U",
+                        f"BBM_{period}_{std:.1f}": "BB_M",
+                        f"BBL_{period}_{std:.1f}": "BB_L",
+                        f"BBB_{period}_{std:.1f}": "BB_B",
+                        f"BBP_{period}_{std:.1f}": "BB_P",
                     }
                 ),
             ],
             axis=1,
         )
-    df_symbol[f"BBU_{period}_{std}"] = np.nan
-    df_symbol[f"BBM_{period}_{std}"] = np.nan
-    df_symbol[f"BBL_{period}_{std}"] = np.nan
-    df_symbol[f"BBB_{period}_{std}"] = np.nan
-    df_symbol[f"BBP_{period}_{std}"] = np.nan
-    return df_symbol
 
 # %% ../nbs/02_technicals.ipynb 18
 # Generate donchian channel data
@@ -219,6 +216,33 @@ def add_candle_stats(df_symbol):
     )
 
 # %% ../nbs/02_technicals.ipynb 24
+def get_keltner_channels(df_symbol):
+    return pd.concat(
+        [
+            df_symbol,
+            pdta.kc(
+                df_symbol.HIGH,
+                df_symbol.LOW,
+                df_symbol.CLOSE,
+                length=20,
+                scalar=2,
+                atr_length=10,
+                mamode="EMA",
+            )
+            .rename(
+                columns={
+                    "KCUe_20_2.0": "KC_U",
+                    "KCLe_20_2.0": "KC_L",
+                    "KCUe_20_2": "KC_U",
+                    "KCLe_20_2": "KC_L",
+                }
+            )
+            .drop(columns=["KCBe_20_2.0"]),
+        ],
+        axis=1,
+    )
+
+# %% ../nbs/02_technicals.ipynb 26
 # Generate all technicals for a symbol data
 def add_all_technicals(df_symbol):
     return (
@@ -241,26 +265,24 @@ def add_all_technicals(df_symbol):
         # .pipe(add_candle_stats)
     )
 
-# %% ../nbs/02_technicals.ipynb 26
+# %% ../nbs/02_technicals.ipynb 28
 def process_and_save_symbol_data(df):
+    # print("Adding technicals...")
     df = add_all_technicals(df)
     file_path = processed_data_dir / f"{df.SYMBOL.iloc[-1]}.parquet"
     df.to_parquet(file_path, index=False)
     print(f"Saved {file_path.name}")
 
-# %% ../nbs/02_technicals.ipynb 27
+# %% ../nbs/02_technicals.ipynb 29
 def update_symbols(df):
-    symbol_replacements = [
-        ("CADILAHC", "ZYDUSLIFE"),
-        ("MINDAIND", "UNOMINDA"),
-    ]
-
-    for old, new in symbol_replacements:
-        df.SYMBOL = df.SYMBOL.replace({old: new})
-        
+    symbol_replacements = get_symbol_change_list()
+    print("Updating Symbol names...")
+    for (old, new) in tqdm(symbol_replacements):
+        if old in df.SYMBOL.values:
+            df.SYMBOL = df.SYMBOL.replace({old: new})
     return df
 
-# %% ../nbs/02_technicals.ipynb 28
+# %% ../nbs/02_technicals.ipynb 30
 def rebuild_all_symbols_data():
     df = get_raw_bhavcopy_data()
     df = preprocess(df)
@@ -277,7 +299,7 @@ def rebuild_all_symbols_data():
         process_and_save_symbol_data(df_symbol)
             
 
-# %% ../nbs/02_technicals.ipynb 29
+# %% ../nbs/02_technicals.ipynb 31
 def update_all_symbols_data():
     # Define date range
     start_date = (

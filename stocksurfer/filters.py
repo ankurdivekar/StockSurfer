@@ -2,15 +2,21 @@
 
 # %% auto 0
 __all__ = ['base_path', 'processed_data_dir', 'nifty500_csv', 'get_nifty500', 'get_symbol_data', 'get_monthly_data',
-           'get_weekly_data', 'filter_stocks', 'wedge_200_20', 'level_catch', 'alltime_high', 'single_candle_span',
-           'hammer_on_BBL', 'green_engulfing_on_BBL', 'three_rising_green_candles_on_SMA20']
+           'get_weekly_data', 'filter_stocks', 'bollinger_squeeze', 'volume_surge', 'wedge_200_20', 'level_catch',
+           'alltime_high', 'single_candle_span', 'hammer_on_BBL', 'green_engulfing_on_BBL',
+           'three_rising_green_candles_on_SMA20']
 
 # %% ../nbs/04_filters.ipynb 3
 import pandas as pd
 from datetime import datetime, timedelta
 import nbdev
-from .technicals import add_all_technicals, get_sma, update_all_symbols_data
-
+from stocksurfer.technicals import (
+    add_all_technicals,
+    get_sma,
+    update_all_symbols_data,
+    get_keltner_channels,
+    get_bollinger_bands
+)
 
 # %% ../nbs/04_filters.ipynb 4
 base_path = nbdev.config.get_config().lib_path
@@ -21,13 +27,13 @@ processed_data_dir = base_path / "../Data/Bhavcopy/Processed/"
 nifty500_csv = base_path / "../Data/Misc/ind_nifty500list.csv"
 
 
-# %% ../nbs/04_filters.ipynb 8
+# %% ../nbs/04_filters.ipynb 7
 def get_nifty500():
     # Get Nifty500 list
     return pd.read_csv(nifty500_csv).Symbol.to_list()
 
 
-# %% ../nbs/04_filters.ipynb 9
+# %% ../nbs/04_filters.ipynb 8
 # Load data for a symbol
 def get_symbol_data(symbol):
     file_path = base_path / processed_data_dir / f"{symbol}.parquet"
@@ -38,7 +44,7 @@ def get_symbol_data(symbol):
     df["DATE"] = pd.to_datetime(df["DATE"])  # apply(lambda x: x.strftime('%Y-%d-%m'))
     return df
 
-# %% ../nbs/04_filters.ipynb 10
+# %% ../nbs/04_filters.ipynb 9
 # Convert daily data to monthly data
 def get_monthly_data(df):
     return (
@@ -76,7 +82,7 @@ def get_weekly_data(df):
         .reset_index(drop=True)
     )
 
-# %% ../nbs/04_filters.ipynb 11
+# %% ../nbs/04_filters.ipynb 10
 def filter_stocks(
     symbols=None,
     timeframe="daily",
@@ -121,6 +127,57 @@ def filter_stocks(
                         break
 
 # %% ../nbs/04_filters.ipynb 15
+def bollinger_squeeze(df, kwargs=None):
+    # Get args
+    window = kwargs["window"] if kwargs and "window" in kwargs.keys() else 10
+
+    if "KC_U" not in df.columns:
+        df = get_keltner_channels(df)
+    if "BB_U" not in df.columns:
+        df = get_bollinger_bands(df)
+
+    conditions = [
+        all(df.iloc[-window - 1 : -1].KC_U > df.iloc[-window - 1 : -1].BB_U),
+        all(df.iloc[-window - 1 : -1].KC_L < df.iloc[-window - 1 : -1].BB_L),
+        any(
+            [
+                df.iloc[-1].KC_U < df.iloc[-1].BB_U,
+                df.iloc[-1].KC_L > df.iloc[-1].BB_L,
+            ]
+        ),
+    ]
+
+    if all(conditions):
+        print(
+            f"{df.iloc[-1].SYMBOL} has a bollinger squeeze breakout on {df.DATE.iloc[-1].date()} @ {df.iloc[-1].CLOSE}"
+        )
+        return True
+    return False
+
+# %% ../nbs/04_filters.ipynb 17
+def volume_surge(df, kwargs=None):
+    # Get args
+    window = kwargs["window"] if kwargs and "window" in kwargs.keys() else 12
+    surge_factor = (
+        kwargs["surge_factor"] if kwargs and "surge_factor" in kwargs.keys() else 3
+    )
+
+    # vol_mean = df.iloc[-window-1:-1].TOTTRDQTY.mean()
+    vol_max = df.iloc[-window - 1 : -1].TOTTRDQTY.max()
+
+    conditions = [
+        vol_max * surge_factor < df.iloc[-1].TOTTRDQTY,
+        df.iloc[-1].CLOSE > df.iloc[-1].OPEN,
+    ]
+
+    if all(conditions):
+        print(
+            f"{df.iloc[-1].SYMBOL} has a volume surge on {df.DATE.iloc[-1].date()} @ {df.iloc[-1].CLOSE} -> {df.iloc[-1].TOTTRDQTY}"
+        )
+        return True
+    return False
+
+# %% ../nbs/04_filters.ipynb 19
 # Check for a 200-20 wedge position
 def wedge_200_20(df, kwargs=None):
     
@@ -182,7 +239,7 @@ def wedge_200_20(df, kwargs=None):
         return True
     return False
 
-# %% ../nbs/04_filters.ipynb 18
+# %% ../nbs/04_filters.ipynb 22
 # Check for SMA 20 catch
 def level_catch(df, kwargs=None):
     if kwargs and "level" in kwargs.keys():
@@ -201,7 +258,7 @@ def level_catch(df, kwargs=None):
         print("Level not specified")
     return False
 
-# %% ../nbs/04_filters.ipynb 22
+# %% ../nbs/04_filters.ipynb 26
 # Check for alltime high
 def alltime_high(df, kwargs=None):
     df2 = df[:-1]
@@ -219,7 +276,7 @@ def alltime_high(df, kwargs=None):
         return True
     return False
 
-# %% ../nbs/04_filters.ipynb 25
+# %% ../nbs/04_filters.ipynb 29
 # Check if the latest candle spans the given SMAs
 def single_candle_span(df, kwargs=None):
     if kwargs and "col_list" in kwargs.keys():
@@ -235,7 +292,7 @@ def single_candle_span(df, kwargs=None):
         return True
     return False
 
-# %% ../nbs/04_filters.ipynb 28
+# %% ../nbs/04_filters.ipynb 32
 # Check if the latest candle is a hammer
 def hammer_on_BBL(df, kwargs=None):
     body = df.iloc[-1].CLOSE - df.iloc[-1].OPEN
@@ -254,7 +311,7 @@ def hammer_on_BBL(df, kwargs=None):
         return True
     return False
 
-# %% ../nbs/04_filters.ipynb 31
+# %% ../nbs/04_filters.ipynb 35
 # Check if latest candle is green takes out red on BBL
 def green_engulfing_on_BBL(df, kwargs=None):
     conditions = [
@@ -271,7 +328,7 @@ def green_engulfing_on_BBL(df, kwargs=None):
         return True
     return False
 
-# %% ../nbs/04_filters.ipynb 34
+# %% ../nbs/04_filters.ipynb 38
 # Check for three rising green candles
 def three_rising_green_candles_on_SMA20(df, kwargs=None):
     conditions = [
