@@ -330,6 +330,7 @@ def update_symbols(df):
     symbol_replacements = get_symbol_change_list()
     print("Updating Symbol names...")
     for (old, new) in tqdm(symbol_replacements):
+        # print(f"Replacing {old} with {new}")
         if old in df.SYMBOL.values:
             df.SYMBOL = df.SYMBOL.replace({old: new})
     return df

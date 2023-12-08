@@ -20,6 +20,7 @@ from stocksurfer.technicals import (
 from stocksurfer.scrapers import (
     get_nifty500_stocks,
     get_nifty100_stocks,
+    get_nifty50_stocks,
     get_fno_stocks,
 )
 
@@ -42,6 +43,8 @@ def filter_stocks(
     match symbols:
         case None:
             symbols = get_nifty500_stocks()
+        case "nifty50":
+            symbols = get_nifty50_stocks()
         case "nifty100":
             symbols = get_nifty100_stocks()
         case "nifty500":
@@ -153,7 +156,7 @@ def volume_surge(df, kwargs=None):
     return all(conditions)
 
 
-# %% ../nbs/04_filters.ipynb 18
+# %% ../nbs/04_filters.ipynb 19
 # Check for a 200-20 wedge position
 def wedge_200_20(df, kwargs=None):
     # Get args
@@ -203,7 +206,7 @@ def wedge_200_20(df, kwargs=None):
 
     return all(conditions)
 
-# %% ../nbs/04_filters.ipynb 20
+# %% ../nbs/04_filters.ipynb 22
 # Check for SMA 20 catch
 def level_catch(df, kwargs=None):
     # Get args
@@ -219,7 +222,7 @@ def level_catch(df, kwargs=None):
 
     return all(conditions)
 
-# %% ../nbs/04_filters.ipynb 23
+# %% ../nbs/04_filters.ipynb 26
 # Check for alltime high
 def alltime_high(df, kwargs=None):
     df2 = df[:-1]
@@ -233,7 +236,7 @@ def alltime_high(df, kwargs=None):
 
     return all(conditions)
 
-# %% ../nbs/04_filters.ipynb 25
+# %% ../nbs/04_filters.ipynb 29
 # Check if the latest candle spans the given SMAs
 def single_candle_span(df, kwargs=None):
     col_list = (
@@ -247,7 +250,7 @@ def single_candle_span(df, kwargs=None):
     ]
     return all(conditions)
 
-# %% ../nbs/04_filters.ipynb 28
+# %% ../nbs/04_filters.ipynb 32
 # Check if the latest candle is a hammer
 def hammer_on_BBL(df, kwargs=None):
     body = df.iloc[-1].CLOSE - df.iloc[-1].OPEN
@@ -264,7 +267,7 @@ def hammer_on_BBL(df, kwargs=None):
     return all(conditions)
 
 
-# %% ../nbs/04_filters.ipynb 31
+# %% ../nbs/04_filters.ipynb 35
 # Check if latest candle is green takes out red on BBL
 def green_engulfing_on_BBL(df, kwargs=None):
     conditions = [
@@ -277,7 +280,7 @@ def green_engulfing_on_BBL(df, kwargs=None):
     return all(conditions)
 
 
-# %% ../nbs/04_filters.ipynb 34
+# %% ../nbs/04_filters.ipynb 38
 # Check for three rising green candles
 def three_rising_green_candles_on_SMA20(df, kwargs=None):
     conditions = [
